@@ -1,0 +1,35 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Cerrar"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "billing": "Facturación",
+    "settings": "Configuración",
+    "logout": "Cerrar sesión"
+  },
+  "hero": {
+    "title": "Bienvenido a Synix RMS",
+    "subtitle": "Tu poderoso sistema de gestión de restaurantes",
+    "cta": "Comenzar"
+  },
+  "features": {
+    "title": "Características",
+    "description": "Descubre lo que hace especial a nuestra plataforma"
+  },
+  "pricing": {
+    "title": "Precios",
+    "description": "Elige el plan que sea adecuado para ti"
+  },
+  "footer": {
+    "copyright": "© 2026 Synix RMS. Todos los derechos reservados."
+  }
+}

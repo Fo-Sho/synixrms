@@ -1,0 +1,43 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `currentPeriodEnd` on the `User` table. All the data in the column will be lost.
+  - You are about to drop the column `plan` on the `User` table. All the data in the column will be lost.
+  - You are about to drop the column `stripeCustomerId` on the `User` table. All the data in the column will be lost.
+  - You are about to drop the column `subscriptionId` on the `User` table. All the data in the column will be lost.
+  - You are about to drop the column `subscriptionStatus` on the `User` table. All the data in the column will be lost.
+  - You are about to drop the column `updatedAt` on the `User` table. All the data in the column will be lost.
+
+*/
+-- AlterTable
+ALTER TABLE "User" DROP COLUMN "currentPeriodEnd",
+DROP COLUMN "plan",
+DROP COLUMN "stripeCustomerId",
+DROP COLUMN "subscriptionId",
+DROP COLUMN "subscriptionStatus",
+DROP COLUMN "updatedAt";
+
+-- CreateTable
+CREATE TABLE "Subscription" (
+    "id" TEXT NOT NULL,
+    "stripeCustomerId" TEXT NOT NULL,
+    "stripeSubscriptionId" TEXT NOT NULL,
+    "stripePriceId" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "currentPeriodEnd" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Subscription_stripeCustomerId_key" ON "Subscription"("stripeCustomerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Subscription_stripeSubscriptionId_key" ON "Subscription"("stripeSubscriptionId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Subscription_userId_key" ON "Subscription"("userId");
+
+-- AddForeignKey
+ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

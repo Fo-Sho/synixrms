@@ -1,0 +1,9 @@
+/* components.css */
+
+/* Feature section icon */
+.feature-icon {
+  width: 24px;       /* exact 8px width */
+  height: 24px;      /* exact 8px height */
+  flex-shrink: 0;   /* prevents icon from stretching */
+  margin-top: 8px;  /* vertical alignment with text */
+}
