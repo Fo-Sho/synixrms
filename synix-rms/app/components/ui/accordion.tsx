@@ -1,7 +1,7 @@
 'use client';
 
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
-import { ChevronRight } from 'lucide-react';
+// import { ChevronRight } from 'lucide-react';  // Comment this out
 import * as React from 'react';
 
 import { cn } from './../../utils/Helpers';
@@ -34,7 +34,7 @@ const AccordionTrigger = React.forwardRef<
       {...props}
     >
       {children}
-      <ChevronRight className="size-4 shrink-0 transition-transform duration-200" />
+   {/* <ChevronRight className="size-4 shrink-0 transition-transform duration-200" /> */} 
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ));
