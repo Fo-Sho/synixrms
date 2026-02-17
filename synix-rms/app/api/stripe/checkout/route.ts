@@ -1,68 +1,44 @@
-import { NextResponse } from 'next/server';
-import { stripe } from '@/libs/stripe';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { prisma } from "@/libs/prisma";
+import { getPlanFromPriceId } from "@/libs/plans";
+import { stripe } from "@/libs/stripe";
 
 export async function POST(req: Request) {
+  const body = await req.text();
+  
+  // AWAIT the headers() function
+  const headersList = await headers();
+  const signature = headersList.get("stripe-signature");
+
+  if (!signature) {
+    return new NextResponse("Missing Stripe signature", { status: 400 });
+  }
+
+  // Rest of your webhook code...
   try {
-    // 1️⃣ Parse request body
-    const { priceId } = await req.json();
-    if (!priceId) {
-      return NextResponse.json(
-        { error: 'Missing priceId' },
-        { status: 400 }
-      );
-    }
-
-    // 2️⃣ Get current user from Clerk - AWAIT the auth() function
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Get user details including email
-    const user = await currentUser();
-    const email = user?.emailAddresses?.[0]?.emailAddress;
-    if (!email) {
-      return NextResponse.json(
-        { error: 'No email found for user' },
-        { status: 400 }
-      );
-    }
-
-    // 3️⃣ Create Stripe customer
-    const customer = await stripe.customers.create({
-      email,
-      metadata: { clerkUserId: userId },
-    });
-
-    // 4️⃣ Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      mode: 'subscription',
-      payment_method_types: ['card'],
-      customer: customer.id,
-      metadata: {
-        clerkUserId: userId,
-      },
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      success_url: `${req.headers.get('origin')}/dashboard/billing?success=true`,
-      cancel_url: `${req.headers.get('origin')}/dashboard/billing?canceled=true`,
-    });
-
-    return NextResponse.json({ url: session.url });
-    
-  } catch (error) {
-    console.error('Stripe checkout error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
     );
+
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        // Handle the checkout session completion
+        break;
+      }
+      // Handle other event types...
+    }
+
+    return new NextResponse("Webhook received", { status: 200 });
+    
+  } catch (err) {
+    console.error("Webhook signature verification failed:", err);
+    return new NextResponse("Webhook signature verification failed", { 
+      status: 400 
+    });
   }
 }
