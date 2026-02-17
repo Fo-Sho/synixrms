@@ -13,8 +13,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2️⃣ Get current user from Clerk
-    const { userId } = auth();
+    // 2️⃣ Get current user from Clerk - AWAIT the auth() function
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
