@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     // 2️⃣ Get current user from Clerk
-    const auth = getAuth();
+    const auth = getAuth(req);
     if (!auth.userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -56,10 +56,10 @@ const session = await stripe.checkout.sessions.create({
   // ... rest of your session config
 });
     return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    console.error('Stripe Checkout Error:', err);
+    } catch (error) {
+    console.error('Stripe checkout error:', error);
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
