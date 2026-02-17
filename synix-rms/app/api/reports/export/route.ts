@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireEntitlement, ForbiddenError, UnauthorizedError } from '@/lib/billing/requireEntitlement';
+import { requireEntitlement, ForbiddenError, UnauthorizedError } from '@/libs/billing/requireEntitlement';
 
 export async function POST() {
   try {
