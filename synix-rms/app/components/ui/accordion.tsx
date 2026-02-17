@@ -1,10 +1,19 @@
-'use client';
+"use client";
 
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
-// import { ChevronRight } from 'lucide-react';  // Comment this out
+// Replace this line:
+// import { ChevronRight } from 'lucide-react';
+
+// With this (using Heroicons which you already have):
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import * as React from 'react';
 
 import { cn } from './../../utils/Helpers';
+
+// Then in your component, use ChevronRightIcon instead of ChevronRight
+
+// Rest of your component code...
+// Replace any usage of Check with CheckIcon, ChevronRight with ChevronRightIcon, etc.
 
 const Accordion = AccordionPrimitive.Root;
 
@@ -34,7 +43,7 @@ const AccordionTrigger = React.forwardRef<
       {...props}
     >
       {children}
-   {/* <ChevronRight className="size-4 shrink-0 transition-transform duration-200" /> */} 
+      <ChevronRightIcon className="size-4 shrink-0 transition-transform duration-200" /> 
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ));
