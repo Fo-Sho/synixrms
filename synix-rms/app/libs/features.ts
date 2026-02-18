@@ -5,17 +5,19 @@ export async function hasFeature(
   userId: string,
   feature: string
 ): Promise<boolean> {
+  // Get user's subscription
   const subscription = await prisma.subscription.findFirst({
     where: {
       userId,
-      status: { in: ['active', 'trialing'] },
-    },
+      status: 'active'
+    }
   });
 
   if (!subscription) return false;
 
+  // Fix: Use 'planName' instead of 'plan'
   const allowedFeatures =
-    PLAN_FEATURES[subscription.plan as keyof typeof PLAN_FEATURES] ?? [];
+    PLAN_FEATURES[subscription.planName as keyof typeof PLAN_FEATURES] ?? [];
 
   return allowedFeatures.includes(feature);
 }
