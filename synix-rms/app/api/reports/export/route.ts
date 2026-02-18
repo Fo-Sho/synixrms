@@ -1,21 +1,20 @@
 import { NextResponse } from 'next/server';
-import { requireEntitlement, ForbiddenError, UnauthorizedError } from '@/libs/billing/requireEntitlement';
+import { auth } from '@clerk/nextjs/server';
 
 export async function POST() {
   try {
-    await requireEntitlement('export_reports');
-
-    // 🔒 Protected logic
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    if (err instanceof UnauthorizedError) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Simple auth check instead of requireEntitlement
+    const { userId } = await auth();
+    
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (err instanceof ForbiddenError) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    throw err;
+    // Your export logic here
+    return NextResponse.json({ message: "Export successful", userId });
+    
+  } catch (error) {
+    console.error('Export error:', error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
