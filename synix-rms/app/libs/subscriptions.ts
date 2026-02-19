@@ -47,14 +47,14 @@ export async function getUserPlan(userId: string): Promise<Plan> {
   }
 
   // Map Stripe price IDs to plan types that match your feature gates
-  switch (subscription.stripePriceId) { // Use stripePriceId to match database
-    case 'price_starter_monthly':
+switch (subscription.stripePriceId) {
+    case 'price_1Sv1VKCVMysKg9P0ZOos2DCx':
     case 'price_starter_yearly':
       return 'pro';
-    case 'price_pro_monthly':
+    case 'price_1Sv23VCVMysKg9P0neTxuCjU':
     case 'price_pro_yearly':
       return 'pro';
-    case 'price_enterprise_monthly':
+    case 'price_1Sv29WCVMysKg9P04CnR6DNc':
     case 'price_enterprise_yearly':
     case 'price_team_monthly':
     case 'price_team_yearly':
@@ -68,9 +68,9 @@ export async function hasFeature(userId: string, feature: string) {
   const subscription = await getActiveSubscription(userId);
   if (!subscription) return false;
 
-  const planName = subscription.stripePriceId === 'price_starter_monthly' ? 'Starter' :
-                   subscription.stripePriceId === 'price_pro_monthly' ? 'Pro' :
-                   subscription.stripePriceId === 'price_enterprise_monthly' ? 'Enterprise' :
+  const planName = subscription.stripePriceId === 'price_1Sv1VKCVMysKg9P0ZOos2DCx' ? 'Starter' :
+                   subscription.stripePriceId === 'price_1Sv23VCVMysKg9P0neTxuCjU' ? 'Pro' :
+                   subscription.stripePriceId === 'price_1Sv29WCVMysKg9P04CnR6DNc' ? 'Enterprise' :
                    'Starter';
 
   const features = PLAN_FEATURES[planName];

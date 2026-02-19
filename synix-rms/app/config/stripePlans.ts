@@ -1,14 +1,14 @@
 export const PRICE_TO_PLAN: Record<string, 'starter' | 'pro' | 'enterprise'> = {
   // Starter
-  price_starter_monthly: 'starter',
+  price_1Sv1VKCVMysKg9P0ZOos2DCx: 'starter',
   price_starter_yearly: 'starter',
 
   // Pro
-  price_pro_monthly: 'pro',
+  price_1Sv23VCVMysKg9P0neTxuCjU: 'pro',
   price_pro_yearly: 'pro',
 
-  // Enterprise (if applicable)
-  price_enterprise: 'enterprise',
+  // Enterprise
+  price_1Sv29WCVMysKg9P04CnR6DNc: 'enterprise',
 };
 
 export const PLAN_ENTITLEMENTS: Record<string, string[]> = {

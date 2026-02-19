@@ -21,12 +21,13 @@ type Subscription = {
 };
 
 const PLANS: Plan[] = [
+  // Around lines 29 and 39:
   {
     name: 'Starter',
     description: 'For small hotels getting started',
     monthly: 169,
     yearly: 1908,
-    monthlyPriceId: 'price_starter_monthly',
+    monthlyPriceId: 'price_1Sv1VKCVMysKg9P0ZOos2DCx',
     yearlyPriceId: 'price_starter_yearly',
     features: ['Dynamic pricing rules', 'Basic analytics', 'Email support'],
   },
@@ -36,13 +37,14 @@ const PLANS: Plan[] = [
     monthly: 199,
     yearly: 2028,
     popular: true,
-    monthlyPriceId: 'price_pro_monthly',
+    monthlyPriceId: 'price_1Sv23VCVMysKg9P0neTxuCjU',
     yearlyPriceId: 'price_pro_yearly',
     features: [
-      'Real-time demand pricing',
-      'Advanced upsells',
-      'Revenue dashboards',
+      'Everything in Starter',
+      'Advanced forecasting',
       'Priority support',
+      'API access',
+      'Custom reporting',
     ],
   },
   {
