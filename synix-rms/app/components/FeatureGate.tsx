@@ -23,8 +23,14 @@ export function FeatureGate({ requiredPlan, children, fallback }: FeatureGatePro
         const response = await fetch('/api/user/plan');
         const { plan } = await response.json();
         
-        const planHierarchy = { free: 0, starter: 1, pro: 2, enterprise: 3 };
-        const userLevel = planHierarchy[plan] || 0;
+        const planHierarchy: Record<string, number> = { 
+          free: 0, 
+          starter: 1, 
+          pro: 2, 
+          enterprise: 3 
+        };
+        
+        const userLevel = planHierarchy[plan as string] || 0;
         const requiredLevel = planHierarchy[requiredPlan] || 1;
         
         const hasRequiredAccess = userLevel >= requiredLevel;
