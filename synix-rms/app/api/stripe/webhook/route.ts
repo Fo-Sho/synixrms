@@ -88,17 +88,32 @@ await prisma.subscription.upsert({
 
 // Notify hotel backend of subscription change
 try {
-  await fetch(`${process.env.HOTEL_BACKEND_URL}/api/sync-user`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ clerkUserId })
-  });
+  if (userRecord?.clerkUserId) {
+    console.log(`Syncing user ${userRecord.clerkUserId} with hotel backend`);
+    
+    const syncResponse = await fetch(`${process.env.HOTEL_BACKEND_URL}/api/sync-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        clerkUserId: userRecord.clerkUserId,
+        planName: subscription.planName,
+        subscriptionStatus: 'active'
+      })
+    });
+    
+    if (syncResponse.ok) {
+      console.log('Successfully synced with hotel backend');
+    } else {
+      console.error('Hotel backend sync failed:', syncResponse.status);
+    }
+  } else {
+    console.warn('No clerkUserId found for user sync');
+  }
 } catch (error) {
   console.error('Failed to sync with hotel backend:', error);
 }
-
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
