@@ -1,9 +1,9 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import { sign } from 'jsonwebtoken';
 import { getActiveSubscription } from '@/libs/subscriptions';
+import crypto from 'crypto';
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const { userId } = await auth();
     
@@ -11,35 +11,40 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user subscription info
+    // Get user subscription
     const subscription = await getActiveSubscription(userId);
-    
-    // Create JWT payload with user info and subscription status
-    const payload = {
-      userId,
-      subscriptionStatus: subscription?.status || 'free',
-      plan: subscription?.stripePriceId ? getPlanFromPriceId(subscription.stripePriceId) : 'free',
-      exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour expiry
-      iat: Math.floor(Date.now() / 1000),
+    const planName = subscription?.planName || 'free';
+
+    // Create SSO payload
+    const ssoPayload = {
+      clerkUserId: userId,
+      planName: planName,
+      subscriptionId: subscription?.stripeSubscriptionId,
+      subscriptionStatus: subscription?.status || 'none',
+      email: 'user@example.com', // You might want to get actual email
+      timestamp: Date.now(),
+      expiresAt: Date.now() + (15 * 60 * 1000) // 15 minutes
     };
 
-    // Sign the token with your secret
-    const token = sign(payload, process.env.SSO_JWT_SECRET!);
+    // Create signed token
+    const payloadString = JSON.stringify(ssoPayload);
+    const signature = crypto
+      .createHmac('sha256', process.env.SSO_SHARED_SECRET!)
+      .update(payloadString)
+      .digest('hex');
 
+    const token = Buffer.from(`${payloadString}.${signature}`).toString('base64');
+    
     return NextResponse.json({ 
       token,
-      redirectUrl: process.env.PYTHON_APP_URL || 'http://localhost:8000'
+      hotelBackendUrl: process.env.HOTEL_BACKEND_URL 
     });
-
+    
   } catch (error) {
-    console.error('SSO token generation failed:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
-    );
+    console.error('SSO token error:', error);
+    return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 });
   }
 }
-
 function getPlanFromPriceId(priceId: string): string {
   const priceToPlans: Record<string, string> = {
     'price_1Sv1VKCVMysKg9P0ZOos2DCx': 'starter',

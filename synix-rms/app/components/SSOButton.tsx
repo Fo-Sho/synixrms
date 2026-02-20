@@ -3,49 +3,43 @@
 import { useState } from 'react';
 
 interface SSOButtonProps {
+  children: React.ReactNode;
   className?: string;
-  children?: React.ReactNode;
 }
 
-export function SSOButton({ className, children }: SSOButtonProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  
+export function SSOButton({ children, className }: SSOButtonProps) {
+  const [loading, setLoading] = useState(false);
+
   const handleSSO = async () => {
-    setIsLoading(true);
+    setLoading(true);
     
     try {
       const response = await fetch('/api/auth/sso-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method: 'POST'
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to generate SSO token');
+      const { token, hotelBackendUrl } = await response.json();
+      
+      if (token && hotelBackendUrl) {
+        // Redirect to Python backend with SSO token
+        window.location.href = `${hotelBackendUrl}/auth/sso?token=${token}`;
+      } else {
+        console.error('Failed to get SSO token');
       }
-      
-      const data = await response.json();
-      
-      // Redirect to Python app with token
-      const url = `${data.redirectUrl}/sso/login?token=${data.token}`;
-      window.open(url, '_blank'); // Opens in new tab
-      
     } catch (error) {
-      console.error('SSO failed:', error);
-      alert('Failed to access hotel management system. Please try again.');
+      console.error('SSO error:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-  
+
   return (
-    <button
+    <button 
       onClick={handleSSO}
-      disabled={isLoading}
-      className={`${className} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      disabled={loading}
+      className={className}
     >
-      {isLoading ? 'Connecting...' : children || 'Access Hotel Management'}
+      {loading ? 'Connecting...' : children}
     </button>
   );
 }
