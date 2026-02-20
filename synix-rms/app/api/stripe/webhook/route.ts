@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 
         console.log('Subscription upserted successfully for user:', clerkUserId);
 
-        // MOVE THE HOTEL BACKEND SYNC HERE (INSIDE THE CASE)
+        // Sync with hotel backend
         try {
           if (user?.clerkUserId) {
             console.log(`Syncing user ${user.clerkUserId} with hotel backend`);
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
         // Handle successful subscription renewals
-        console.log('Payment succeeded for subscription:', invoice.subscription);
+        console.log('Payment succeeded for invoice:', invoice.id);
         break;
       }
 
