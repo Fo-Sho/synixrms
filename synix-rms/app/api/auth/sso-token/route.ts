@@ -42,10 +42,10 @@ export async function POST(request: Request) {
 
 function getPlanFromPriceId(priceId: string): string {
   const priceToPlans: Record<string, string> = {
-    price_starter_monthly: 'starter',
-    price_starter_yearly: 'starter',
-    price_pro_monthly: 'pro',
-    price_pro_yearly: 'pro',
+    'price_1Sv1VKCVMysKg9P0ZOos2DCx': 'starter',
+    'price_starter_yearly': 'starter',
+    'price_1Sv23VCVMysKg9P0neTxuCjU': 'pro',
+    'price_pro_yearly': 'pro',
   };
   
   return priceToPlans[priceId] || 'free';

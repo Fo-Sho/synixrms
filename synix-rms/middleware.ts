@@ -1,7 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { FEATURE_GATES, hasRequiredPlan } from "@/libs/feature-gates";
-import { getUserPlan } from "@/libs/subscriptions";
 
 const isProtectedRoute = createRouteMatcher([
   "/en/dashboard(.*)",
@@ -50,60 +48,9 @@ export default clerkMiddleware(async (auth, req) => {
     await auth.protect();
   }
 
-  // If no user after protect, let Clerk handle redirect
-  if (!userId) {
-    return NextResponse.next();
-  }
-
-  // Skip feature gating for billing page itself
-  if (pathname.includes('/billing')) {
-    console.log('Skipping feature gate for billing page');
-    return NextResponse.next();
-  }
-
-  // Extract locale from URL (en or fr) - only for localized paths
-  const pathParts = pathname.split('/');
-  const locale = pathParts[1];
+  // Remove all subscription checking from middleware
+  // Let individual pages handle their own feature gates
   
-  // Only proceed with feature gating if we have a valid locale
-  if (!['en', 'fr'].includes(locale)) {
-    return NextResponse.next();
-  }
-
-  const routePath = '/' + pathParts.slice(2).join('/');
-  console.log(`Extracted locale: ${locale}, Route path: ${routePath}`);
-
-  // Find matching gated route
-  const matchedGate = Object.entries(FEATURE_GATES).find(
-    ([route]) => routePath.startsWith(route)
-  );
-
-  if (!matchedGate) {
-    console.log('No feature gate matched');
-    return NextResponse.next();
-  }
-
-  const [gatedRoute, requiredPlan] = matchedGate;
-  console.log(`Feature gate matched: ${gatedRoute} requires ${requiredPlan}`);
-
-  try {
-    const userPlan = await getUserPlan(userId);
-    console.log(`User plan: ${userPlan}, Required: ${requiredPlan}`);
-
-    if (!hasRequiredPlan(userPlan, requiredPlan)) {
-      const billingUrl = new URL(`/${locale}/dashboard/billing`, req.url);
-      billingUrl.searchParams.set("upgrade", requiredPlan);
-      
-      console.log(`Redirecting to: ${billingUrl.toString()}`);
-      return NextResponse.redirect(billingUrl);
-    }
-
-    console.log('User has required plan, allowing access');
-  } catch (error) {
-    console.error('Error in middleware:', error);
-    return NextResponse.next();
-  }
-
   return NextResponse.next();
 });
 

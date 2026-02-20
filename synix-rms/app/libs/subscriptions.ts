@@ -22,21 +22,31 @@ export async function hasActiveSubscription(userId: string) {
   return Boolean(subscription);
 }
 
-/**
- * Full subscription object (used for feature gating, plan checks, billing UI)
- */
-export async function getActiveSubscription(userId: string) {
-  return prisma.subscription.findFirst({
-    where: {
-      userId,
-      status: {
-        in: ['active', 'trialing'],
-      },
-    },
-    orderBy: {
-      currentPeriodEnd: 'desc',
-    },
-  });
+export async function getActiveSubscription(clerkUserId: string) {
+  console.log('Getting subscription for clerkUserId:', clerkUserId);
+  
+  try {
+    // First find the internal user by clerkUserId
+    const user = await prisma.user.findUnique({
+      where: { clerkUserId },
+      include: {
+        subscription: {
+          where: {
+            status: {
+              in: ['active', 'trialing']
+            }
+          }
+        }
+      }
+    });
+
+    console.log('Found user with subscription:', user);
+    return user?.subscription || null;
+    
+  } catch (error) {
+    console.error('Subscription query error:', error);
+    return null;
+  }
 }
 
 export async function getUserPlan(userId: string): Promise<Plan> {
