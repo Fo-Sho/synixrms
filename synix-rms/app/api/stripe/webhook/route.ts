@@ -1,5 +1,5 @@
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import Stripe from "stripe";
 import { prisma } from "@/libs/prisma";
 import { getPlanFromPriceId } from "@/libs/plans";
@@ -24,96 +24,94 @@ export async function POST(req: Request) {
     console.log('Webhook event received:', event.type);
 
     switch (event.type) {
-case "checkout.session.completed": {
-  const session = event.data.object as Stripe.Checkout.Session;
-  console.log('Processing checkout session:', session.id);
-  
-  // Get the subscription details
-  const subscription = await stripe.subscriptions.retrieve(
-    session.subscription as string
-  );
-  
-  const clerkUserId = session.metadata?.clerkUserId;
-  const customerEmail = session.customer_email || session.customer_details?.email || 'placeholder@example.com';
-  
-  if (!clerkUserId) {
-    console.error('No Clerk user ID in session metadata');
-    break;
-  }
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.log('Processing checkout session:', session.id);
+        
+        // Get the subscription details
+        const subscription = await stripe.subscriptions.retrieve(
+          session.subscription as string
+        );
+        
+        const clerkUserId = session.metadata?.clerkUserId;
+        const customerEmail = session.customer_email || session.customer_details?.email || 'placeholder@example.com';
+        
+        if (!clerkUserId) {
+          console.error('No Clerk user ID in session metadata');
+          break;
+        }
 
-  console.log('Creating user with email:', customerEmail);
+        console.log('Creating user with email:', customerEmail);
 
-  // Create or find user
-  const user = await prisma.user.upsert({
-    where: { clerkUserId },
-    update: { 
-      email: customerEmail
-    },
-    create: {
-      clerkUserId,
-      email: customerEmail
-    }
-  });
+        // Create or find user
+        const user = await prisma.user.upsert({
+          where: { clerkUserId },
+          update: { 
+            email: customerEmail
+          },
+          create: {
+            clerkUserId,
+            email: customerEmail
+          }
+        });
 
-  // Simple fix: Use default date (30 days from now)
-  const defaultEndDate = new Date();
-  defaultEndDate.setDate(defaultEndDate.getDate() + 30);
+        // Simple fix: Use default date (30 days from now)
+        const defaultEndDate = new Date();
+        defaultEndDate.setDate(defaultEndDate.getDate() + 30);
 
-  // Fix: Use upsert instead of create to handle existing subscriptions
-  // With this:
-await prisma.subscription.upsert({
-  where: { userId: user.id },
-  update: {
-    stripeCustomerId: subscription.customer as string,
-    stripeSubscriptionId: subscription.id,
-    stripePriceId: subscription.items.data[0].price.id,
-    planName: getPlanFromPriceId(subscription.items.data[0].price.id),
-    status: subscription.status,
-    currentPeriodEnd: defaultEndDate
-  },
-  create: {
-    userId: user.id,
-    stripeCustomerId: subscription.customer as string,
-    stripeSubscriptionId: subscription.id,
-    stripePriceId: subscription.items.data[0].price.id,
-    planName: getPlanFromPriceId(subscription.items.data[0].price.id),
-    status: subscription.status,
-    currentPeriodEnd: defaultEndDate
-  }
-});
+        // Fix: Use upsert instead of create to handle existing subscriptions
+        await prisma.subscription.upsert({
+          where: { userId: user.id },
+          update: {
+            stripeCustomerId: subscription.customer as string,
+            stripeSubscriptionId: subscription.id,
+            stripePriceId: subscription.items.data[0].price.id,
+            planName: getPlanFromPriceId(subscription.items.data[0].price.id),
+            status: subscription.status,
+            currentPeriodEnd: defaultEndDate
+          },
+          create: {
+            userId: user.id,
+            stripeCustomerId: subscription.customer as string,
+            stripeSubscriptionId: subscription.id,
+            stripePriceId: subscription.items.data[0].price.id,
+            planName: getPlanFromPriceId(subscription.items.data[0].price.id),
+            status: subscription.status,
+            currentPeriodEnd: defaultEndDate
+          }
+        });
 
-  console.log('Subscription upserted successfully for user:', clerkUserId);
-  break;
-}
+        console.log('Subscription upserted successfully for user:', clerkUserId);
 
-// Notify hotel backend of subscription change
-try {
-  if (userRecord?.clerkUserId) {
-    console.log(`Syncing user ${userRecord.clerkUserId} with hotel backend`);
-    
-    const syncResponse = await fetch(`${process.env.HOTEL_BACKEND_URL}/api/sync-user`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        clerkUserId: userRecord.clerkUserId,
-        planName: subscription.planName,
-        subscriptionStatus: 'active'
-      })
-    });
-    
-    if (syncResponse.ok) {
-      console.log('Successfully synced with hotel backend');
-    } else {
-      console.error('Hotel backend sync failed:', syncResponse.status);
-    }
-  } else {
-    console.warn('No clerkUserId found for user sync');
-  }
-} catch (error) {
-  console.error('Failed to sync with hotel backend:', error);
-}
+        // MOVE THE HOTEL BACKEND SYNC HERE (INSIDE THE CASE)
+        try {
+          if (user?.clerkUserId) {
+            console.log(`Syncing user ${user.clerkUserId} with hotel backend`);
+            
+            const syncResponse = await fetch(`${process.env.HOTEL_BACKEND_URL}/api/sync-user`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ 
+                clerkUserId: user.clerkUserId
+              })
+            });
+            
+            if (syncResponse.ok) {
+              console.log('Successfully synced with hotel backend');
+            } else {
+              console.error('Hotel backend sync failed:', syncResponse.status);
+            }
+          } else {
+            console.warn('No clerkUserId found for user sync');
+          }
+        } catch (error) {
+          console.error('Failed to sync with hotel backend:', error);
+        }
+        
+        break;
+      }
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
