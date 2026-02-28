@@ -1,48 +1,57 @@
-import { auth } from '@clerk/nextjs/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { getActiveSubscription } from '@/libs/subscriptions';
 import crypto from 'crypto';
 
 export async function POST() {
   try {
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { userId, sessionId } = auth();
+
+    if (!userId || !sessionId) {
+      return NextResponse.json(
+        { error: 'Session expired. Please re-authenticate.' },
+        { status: 401 }
+      );
     }
 
-    // Get user subscription
-    const subscription = await getActiveSubscription(userId);
-    const planName = subscription?.planName || 'free';
+    // Fetch user
+    const user = await clerkClient.users.getUser(userId);
+    const email = user.emailAddresses[0]?.emailAddress;
 
-    // Create SSO payload
+    // Subscription
+    const subscription = await getActiveSubscription(userId);
+
     const ssoPayload = {
       clerkUserId: userId,
-      planName: planName,
-      subscriptionId: subscription?.stripeSubscriptionId,
-      subscriptionStatus: subscription?.status || 'none',
-      email: 'user@example.com', // You might want to get actual email
+      email,
+      planName: subscription?.planName ?? 'free',
+      subscriptionId: subscription?.stripeSubscriptionId ?? null,
+      subscriptionStatus: subscription?.status ?? 'none',
       timestamp: Date.now(),
-      expiresAt: Date.now() + (15 * 60 * 1000) // 15 minutes
+      expiresAt: Date.now() + 5 * 60 * 1000
     };
 
-    // Create signed token
     const payloadString = JSON.stringify(ssoPayload);
     const signature = crypto
       .createHmac('sha256', process.env.SSO_SHARED_SECRET!)
       .update(payloadString)
       .digest('hex');
 
-    const token = Buffer.from(`${payloadString}.${signature}`).toString('base64');
-    
-    return NextResponse.json({ 
+    const token = Buffer
+      .from(`${payloadString}.${signature}`)
+      .toString('base64');
+
+    return NextResponse.json({
       token,
-      hotelBackendUrl: process.env.HOTEL_BACKEND_URL 
+      hotelBackendUrl: process.env.HOTEL_BACKEND_URL
     });
-    
-  } catch (error) {
-    console.error('SSO token error:', error);
-    return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 });
+
+  } catch (err) {
+    console.error('SSO token error:', err);
+    return NextResponse.json(
+      { error: 'Failed to generate token' },
+      { status: 500 }
+    );
   }
 }
 function getPlanFromPriceId(priceId: string): string {
