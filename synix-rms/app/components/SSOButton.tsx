@@ -17,12 +17,18 @@ export function SSOButton({ children, className }: SSOButtonProps) {
       const response = await fetch('/api/auth/sso-token', {
         method: 'POST'
       });
+
+      if (!response.ok) {
+        console.error('Failed to get SSO token:', response.status);
+        return;
+      }
       
       const { token, hotelBackendUrl } = await response.json();
       
       if (token && hotelBackendUrl) {
         // Redirect to Python backend with SSO token
-        window.location.href = `${hotelBackendUrl}/auth/sso?token=${token}`;
+        const encodedToken = encodeURIComponent(token);
+        window.location.href = `${hotelBackendUrl}/auth/sso?token=${encodedToken}`;
       } else {
         console.error('Failed to get SSO token');
       }

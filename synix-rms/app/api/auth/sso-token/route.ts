@@ -5,6 +5,13 @@ import crypto from 'crypto';
 
 export async function POST() {
   try {
+    if (!process.env.SSO_SHARED_SECRET) {
+      return NextResponse.json(
+        { error: 'SSO secret not configured' },
+        { status: 500 }
+      );
+    }
+
     const { userId, sessionId } = auth();
 
     if (!userId || !sessionId) {
@@ -39,7 +46,7 @@ export async function POST() {
 
     const token = Buffer
       .from(`${payloadString}.${signature}`)
-      .toString('base64');
+      .toString('base64url');
 
     return NextResponse.json({
       token,
