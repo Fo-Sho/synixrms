@@ -12,7 +12,7 @@ export async function POST() {
       );
     }
 
-    const { userId, sessionId } = auth();
+    const { userId, sessionId } = await auth();
 
     if (!userId || !sessionId) {
       return NextResponse.json(
