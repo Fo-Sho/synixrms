@@ -2,6 +2,7 @@ import { auth, clerkClient } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { getActiveSubscription } from '@/libs/subscriptions';
 import crypto from 'crypto';
+ import { createClerkClient } from '@clerk/nextjs/server';
 
 export async function POST() {
   try {
@@ -22,7 +23,9 @@ export async function POST() {
     }
 
     // Fetch user
-    const user = await clerkClient.users.getUser(userId);
+   
+    const myClerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+    const user = await myClerkClient.users.getUser(userId);
     const email = user.emailAddresses[0]?.emailAddress;
 
     // Subscription
