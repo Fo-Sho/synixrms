@@ -25,7 +25,7 @@ export const getBaseUrl = () => {
     return `https://${process.env.VERCEL_URL}`;
   }
 
-  return 'http://localhost:3000';
+  return 'https://synix-rms.onrender.com';
 };
 
 export const getI18nPath = (url: string, locale: string) => {

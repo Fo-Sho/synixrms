@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://synix-rms.onrender.com'),
 };
 
 // Generate static params for all locales
